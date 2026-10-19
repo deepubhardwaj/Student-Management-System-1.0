@@ -1,70 +1,81 @@
-
 # Student Management System
 
-A console-based Student Management System developed using Java, JDBC, Maven, and SQLite.
+A console-based Student Management System developed using Java, JDBC, SQLite, and Maven. This project helps manage student records through database operations.
 
 ## Features
 
 - Add new student records
-- Display all students
-- Search students by ID or name
-- Update student details
+- View student records
+- Update existing student details
 - Delete student records
-- View student statistics
-- Calculate average marks
-- Identify top-performing students
-- Store records using SQLite database
-- Validate student input
+- Store student information in an SQLite database
+- Use prepared statements for database operations
+- Organize the project using separate Java classes
 
 ## Technologies Used
 
-- Java 21
-- JDBC
-- SQLite
-- Apache Maven
-- Git and GitHub
+- **Java 21** — Application development
+- **JDBC** — Database connectivity
+- **SQLite** — Database storage
+- **Maven** — Dependency and build management
+
+## Student Information
+
+The system manages the following details:
+
+- Student ID
+- Name
+- Email
+- Course
+- Age
+- Marks
 
 ## Project Structure
 
 ```text
-Student-Management-System/
-├── docs/
-│   └── Project-Report.md
+Student-Management-System-1.0/
 ├── src/
 │   └── main/
 │       └── java/
-│           └── Database.java
-│           └── Main.java
-│           └── Student.java
+│           ├── Main.java
+│           ├── Student.java
+│           ├── Database.java
 │           └── StudentRepository.java
+├── docs/
+│   ├── Project-Report.md
+│   └── Project-Report.pdf
 ├── .gitignore
-├── README.md
-└── pom.xml
+├── pom.xml
+└── README.md
 ```
 
 ## Prerequisites
 
 - Java JDK 21
 - Apache Maven
-
-Verify installation:
-
-```bash
-java -version
-mvn -version
-```
+- Git (optional, for cloning the repository)
 
 ## How to Run
 
-Open the terminal in the project root directory.
+### 1. Clone the repository
 
-Compile the project:
+```bash
+git clone https://github.com/deepubhardwaj/Student-Management-System-1.0.git
+```
+
+### 2. Open the project directory
+
+```bash
+cd Student-Management-System-1.0
+```
+
+### 3. Compile the project
 
 ```bash
 mvn clean compile
 ```
 
-Run the application:
+### 4. Run the application
 
 ```bash
 mvn exec:java
@@ -72,14 +83,21 @@ mvn exec:java
 
 ## Database
 
-The application uses SQLite to store student records locally. The database is initialized by the application.
-
-The local database file is excluded from GitHub using `.gitignore`.
+The project uses SQLite to store student records. The database initialization and connection logic are handled by `Database.java`, while database operations are managed by `StudentRepository.java`.
 
 ## Project Report
 
-The project report is available in the `docs` directory.
+The detailed project report is available in the `docs/` directory:
+
+- [Project Report (PDF)](docs/Project-Report.pdf)
+- [Project Report (Markdown)](docs/Project-Report.md)
 
 ## Author
 
-Deepu Bhardwaj
+**Deepu Bhardwaj**
+
+GitHub: [@deepubhardwaj](https://github.com/deepubhardwaj)
+
+---
+
+This project was developed for learning and practicing Java programming, JDBC, SQL database operations, and Maven-based project management.
