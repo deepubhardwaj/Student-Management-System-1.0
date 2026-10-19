@@ -1,11 +1,13 @@
 # Student Management System — Project Report
 
-Project type: Java console application  
-Technologies: Java 21, JDBC, SQLite, Maven  
-Prepared by: Deepu Bhardwaj 
-Course / Department: B.Tech-CSE(Ai & DS) 
-Institution: GLA University Mathura
-Academic session: 2024-28
+- **Project Type:** Java Console Application
+- **Technologies:** Java 21, JDBC, SQLite, Maven
+- **Prepared By:** Deepu Bhardwaj
+- **Course / Department:** B.Tech – CSE (AI & DS)
+- **Institution:** GLA University, Mathura
+- **Academic Session:** 2024–2028
+
+---
 
 ## 1. Abstract
 The Student Management System is a menu-driven Java application that stores and manages student information in a local SQLite database. It supports adding, viewing, searching, updating, and deleting student records. A dashboard displays total students, average marks, and the top performer. JDBC provides database access and Maven manages dependencies and builds.
