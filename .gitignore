@@ -1,0 +1,19 @@
+
+# Ignore Maven build output
+target/
+
+# Ignore local SQLite database
+*.db
+*.db-shm
+*.db-wal
+
+# Ignore IDE settings
+.vscode/
+.idea/
+
+# Ignore compiled Java files
+*.class
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
