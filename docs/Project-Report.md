@@ -3,8 +3,11 @@
 **Project type:** Java console application  
 **Technologies:** Java 21, JDBC, SQLite, Maven  
 **Prepared by:** Deepu Bhardwaj 
+
 **Course / Department:** B.Tech-CSE(Ai & DS) 
+
 **Institution:** GLA University Mathura
+
 **Academic session:** 2024-28
 
 ## 1. Abstract
