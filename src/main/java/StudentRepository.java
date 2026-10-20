@@ -1,5 +1,8 @@
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -9,35 +12,60 @@ public class StudentRepository {
 
     public int add(Student student) throws SQLException {
 
-        String sql = """
-                INSERT INTO students(name, email, course, age, marks)
-                VALUES (?, ?, ?, ?, ?)
+        String findIdsSql = "SELECT id FROM students ORDER BY id";
+
+        String insertSql = """
+                INSERT INTO students (id, name, email, course, age, marks)
+                VALUES (?, ?, ?, ?, ?, ?)
                 """;
 
-        try (Connection connection = Database.getConnection();
-             PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (Connection connection = Database.getConnection()) {
 
-            bindStudent(ps, student);
-            ps.executeUpdate();
+            connection.setAutoCommit(false);
 
-            try (Statement statement = connection.createStatement();
-                 ResultSet rs =
-                         statement.executeQuery("SELECT last_insert_rowid()")) {
+            try {
+                int nextId = 1;
 
-                if (rs.next()) {
-                    return rs.getInt(1);
+                try (Statement statement = connection.createStatement();
+                     ResultSet rs = statement.executeQuery(findIdsSql)) {
+
+                    while (rs.next()) {
+                        int existingId = rs.getInt("id");
+
+                        if (existingId == nextId) {
+                            nextId++;
+                        } else if (existingId > nextId) {
+                            break;
+                        }
+                    }
                 }
+
+                try (PreparedStatement ps =
+                             connection.prepareStatement(insertSql)) {
+
+                    ps.setInt(1, nextId);
+                    bindStudent(ps, student, 2);
+                    ps.executeUpdate();
+                }
+
+                connection.commit();
+                return nextId;
+
+            } catch (SQLException e) {
+                connection.rollback();
+                throw e;
+            } finally {
+                connection.setAutoCommit(true);
             }
         }
-
-        throw new SQLException("Could not retrieve the new student ID.");
     }
 
     public List<Student> findAll() throws SQLException {
 
         String sql = """
                 SELECT id, name, email, course, age, marks
-                FROM students ORDER BY id
+                FROM students
+                ORDER BY id
                 """;
 
         List<Student> students = new ArrayList<>();
@@ -58,7 +86,8 @@ public class StudentRepository {
 
         String sql = """
                 SELECT id, name, email, course, age, marks
-                FROM students WHERE id = ?
+                FROM students
+                WHERE id = ?
                 """;
 
         try (Connection connection = Database.getConnection();
@@ -86,7 +115,7 @@ public class StudentRepository {
         try (Connection connection = Database.getConnection();
              PreparedStatement ps = connection.prepareStatement(sql)) {
 
-            ps.setString(1, "%" + name + "%");
+            ps.setString(1, "%" + name.trim() + "%");
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -109,7 +138,7 @@ public class StudentRepository {
         try (Connection connection = Database.getConnection();
              PreparedStatement ps = connection.prepareStatement(sql)) {
 
-            bindStudent(ps, student);
+            bindStudent(ps, student, 1);
             ps.setInt(6, id);
 
             return ps.executeUpdate() > 0;
@@ -118,13 +147,76 @@ public class StudentRepository {
 
     public boolean delete(int id) throws SQLException {
 
-        String sql = "DELETE FROM students WHERE id = ?";
+        try (Connection connection = Database.getConnection()) {
 
-        try (Connection connection = Database.getConnection();
-             PreparedStatement ps = connection.prepareStatement(sql)) {
+            connection.setAutoCommit(false);
 
-            ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
+            try {
+                String deleteSql = "DELETE FROM students WHERE id = ?";
+
+                try (PreparedStatement ps =
+                             connection.prepareStatement(deleteSql)) {
+
+                    ps.setInt(1, id);
+
+                    if (ps.executeUpdate() == 0) {
+                        connection.rollback();
+                        return false;
+                    }
+                }
+
+                List<Integer> remainingIds = new ArrayList<>();
+
+                String selectSql = "SELECT id FROM students ORDER BY id";
+
+                try (Statement statement = connection.createStatement();
+                     ResultSet rs = statement.executeQuery(selectSql)) {
+
+                    while (rs.next()) {
+                        remainingIds.add(rs.getInt("id"));
+                    }
+                }
+
+                String updateSql =
+                        "UPDATE students SET id = ? WHERE id = ?";
+
+                // Step 1: Move IDs to temporary negative values.
+                try (PreparedStatement ps =
+                             connection.prepareStatement(updateSql)) {
+
+                    for (int oldId : remainingIds) {
+                        ps.setInt(1, -oldId);
+                        ps.setInt(2, oldId);
+                        ps.addBatch();
+                    }
+
+                    ps.executeBatch();
+                }
+
+                // Step 2: Assign serial IDs starting from 1.
+                try (PreparedStatement ps =
+                             connection.prepareStatement(updateSql)) {
+
+                    int newId = 1;
+
+                    for (int oldId : remainingIds) {
+                        ps.setInt(1, newId++);
+                        ps.setInt(2, -oldId);
+                        ps.addBatch();
+                    }
+
+                    ps.executeBatch();
+                }
+
+                connection.commit();
+                return true;
+
+            } catch (SQLException e) {
+                connection.rollback();
+                throw e;
+            } finally {
+                connection.setAutoCommit(true);
+            }
         }
     }
 
@@ -171,15 +263,16 @@ public class StudentRepository {
         }
     }
 
-    private void bindStudent(PreparedStatement ps, Student student)
+    private void bindStudent(
+            PreparedStatement ps, Student student, int startIndex)
             throws SQLException {
 
-        ps.setString(1, student.getName().trim());
-        ps.setString(2,
+        ps.setString(startIndex, student.getName().trim());
+        ps.setString(startIndex + 1,
                 student.getEmail().trim().toLowerCase(Locale.ROOT));
-        ps.setString(3, student.getCourse().trim());
-        ps.setInt(4, student.getAge());
-        ps.setDouble(5, student.getMarks());
+        ps.setString(startIndex + 2, student.getCourse().trim());
+        ps.setInt(startIndex + 3, student.getAge());
+        ps.setDouble(startIndex + 4, student.getMarks());
     }
 
     private Student map(ResultSet rs) throws SQLException {
